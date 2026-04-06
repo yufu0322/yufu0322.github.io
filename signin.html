@@ -1,0 +1,74 @@
+4<!DOCTYPE html>
+<title>login</title>
+<body>
+    <header>
+        <h1>sign in to down syndrome association</h1>
+    </header>
+</body>
+<div id="signin">
+    <label><input placeholder="email" type=email id="email"/></label><br/>
+    <input type="password" placeholder="password" id="pwd"/><br/>
+    <button id="submit"><a href="#">submit</a></button>
+    </label>
+</div>
+<p>account service was unavailable, please go to our app manually login or register an acount</p>
+<script>
+    //deprecated
+    document.getElementById("submit").addEventListener(click,function(){if(document.getElementById("email").textContent == "admin" && document.getElementById("pwd").textContent == "wwWW123456=yufu"){
+            alert("welcome back, administrator");
+            window.location="https://yufu0322.github.io";
+        }    if(document.getElementById("email").textContent == "" || document.getElementById("pwd").textContent == "" ){
+        alert("Please enter username or password!")
+    }});
+    if(document.getElementById("email").textContent == "" || document.getElementById("pwd").textContent == "" ){
+        alert("Please enter username or password!")
+    }
+    function a(){
+        if(document.getElementById("email").innerHTML == "admin" && document.getElementById("pwd").innerhtml == "wwWW123456=yufu"){
+            alert("welcome back, administrator");
+            window.location="https://yufu0322.github.io";
+        }
+    }
+</script>
+<style>
+    body{
+        background-image:url("background.jpg");
+        font-family: sans-serif;
+        font-size: 150%;
+    }
+    #signin{
+        text-align:center;
+        padding:500,150;
+        margin-left:60em;
+        background-color:white;
+        padding:20px;
+        max-width:400px;
+        border-radius:4px;
+        margin-top:100px;
+        margin:0 auto;
+    }
+    h1{
+        text-align:center;
+        color:white;
+    }
+    input{
+        width:200px;
+        height:20px;
+        margin:10px;
+    }
+    button{
+        width:110px;
+        margin:10px;
+        height:35px;
+        background-color:#4caf50;
+        border:none;
+    }
+    a{
+        text-align:center;
+        text-decoration: none;
+        color:white;
+    }
+    p{
+        color:white;
+    }
+</style>
