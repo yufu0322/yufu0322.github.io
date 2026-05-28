@@ -9,7 +9,7 @@
             <li><a href="#" id="down">下载</a></li>
             <li><a href="abstract.html" id="vidhub">视频</a></li>
             <li><a href = "mailto:yufu0322@outlook.com">联系</a></li>
-            <li><a href="3d-shooter.html">	3D射击游戏</a></li>
+            <li><a href="3d-shooter.html">3D射击游戏</a></li>
         </header>
     </div>
     <div class="sign">
@@ -20,14 +20,13 @@
         <p id="console"></p><br/>
         <a href="en.html">have problems? go to english</a>
     </footer>
-    <p id="patien"></p>
 </body>
 <script>
-    var a = document.createElement("p");
-    a.textContent = "be patient, background was loading after a few seconds"
-    document.body.appendChild(a);
-    setTimeout(()=>document.body.removeChild(a), 1300);
-    document.getElementById("member").addEventListener("click", a);
+    var patient = document.createElement("p");
+    patient.textContent = "be patient, background was loading after a few seconds"
+    document.body.appendChild(patient);
+    setTimeout(()=>document.body.removeChild(patient), 1300);
+    document.getElementById("member").addEventListener("click",a);
     document.getElementById("about").addEventListener("click",b);
 	document.getElementById("down").addEventListener("click",c);
     function a(){
