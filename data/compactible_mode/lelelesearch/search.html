@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搜索结果 - 了了了搜</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .main { flex: 2.5; min-width: 0; }
+    .sidebar { flex: 1; min-width: 250px; }
+
+    .top-bar {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+      background: white; border-radius: 40px; padding: 8px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+    }
+    .top-bar input {
+      flex: 1; border: none; outline: none; font-size: 16px;
+      background: transparent; color: #1e293b;
+    }
+    .top-bar button {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 30px; padding: 8px 24px; font-weight: 600;
+      cursor: pointer; transition: 0.2s;
+    }
+    .top-bar button:hover { background: #4338ca; }
+    .logo-small {
+      font-size: 24px; font-weight: 800; cursor: pointer;
+      background: linear-gradient(135deg, #1e293b, #4f46e5);
+      background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    /* ========== 新增：全局地址栏样式 ========== */
+    .global-url-bar {
+      max-width: 1100px; margin: 10px auto 0 auto; padding: 0 20px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .url-input-wrap {
+      flex: 1; display: flex; align-items: center;
+      background: white; border-radius: 30px; padding: 4px 4px 4px 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+      min-width: 260px;
+    }
+    .url-input-wrap input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      background: transparent; color: #1e293b;
+    }
+    .url-input-wrap input::placeholder { color: #94a3b8; }
+    .url-go-btn {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 30px; padding: 8px 20px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .url-go-btn:hover { background: #4338ca; }
+    .url-help-btn {
+      background: white; border: 1px solid #e2e8f0; border-radius: 30px;
+      padding: 8px 16px; font-size: 13px; cursor: pointer;
+      color: #4f46e5; white-space: nowrap; transition: 0.2s;
+    }
+    .url-help-btn:hover { background: #f1f5f9; }
+
+    /* 状态提示卡片（通用） */
+    .url-toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: white; border-radius: 16px; padding: 20px 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2); z-index: 999;
+      max-width: 600px; width: 90%; text-align: center;
+      border-left: 6px solid #4f46e5;
+    }
+    .url-toast.error { border-left-color: #ef4444; }
+    .url-toast.success { border-left-color: #10b981; }
+    .url-toast h3 { margin-bottom: 10px; }
+    .url-toast p { color: #475569; margin-bottom: 16px; font-size: 14px; }
+    .url-toast .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .url-toast .actions button, .url-toast .actions a {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 30px; padding: 10px 24px; font-weight: 600;
+      cursor: pointer; text-decoration: none; font-size: 14px;
+    }
+    .url-toast .actions .secondary {
+      background: #e2e8f0; color: #1e293b;
+    }
+    .url-toast .close-toast {
+      position: absolute; top: 10px; right: 18px;
+      background: none; border: none; font-size: 22px;
+      cursor: pointer; color: #64748b;
+    }
+
+    /* 状态码说明弹窗 */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white; border-radius: 20px; padding: 24px;
+      max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    .modal-content h2 { margin-bottom: 16px; color: #1e293b; }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+    .status-item { padding: 4px 6px; border-radius: 6px; background: #f8fafc; }
+    .status-code { font-weight: 700; color: #4f46e5; }
+    @media (max-width: 500px) { .status-grid { grid-template-columns: 1fr; } }
+    /* ========== 新增样式结束 ========== */
+
+    /* 词条卡片 */
+    .lexicon-card {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white; border-radius: 20px;
+      padding: 24px; margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(79,70,229,0.3);
+    }
+    .lexicon-card h2 { font-size: 22px; margin-bottom: 8px; }
+    .lexicon-card p { font-size: 14px; opacity: 0.95; line-height: 1.6; margin-bottom: 10px; }
+    .lexicon-card a { color: white; text-decoration: underline; font-weight: 600; }
+    .lexicon-card img { max-width: 200px; border-radius: 12px; margin-bottom: 8px; }
+
+    /* 网站搜索结果 */
+    .result-item {
+      background: white; border-radius: 16px; padding: 16px 20px;
+      margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0; transition: 0.15s;
+    }
+    .result-item:hover { border-color: #4f46e5; }
+    .result-item a { font-size: 18px; font-weight: 600; color: #4f46e5; text-decoration: none; }
+    .result-item .url { font-size: 13px; color: #64748b; margin: 4px 0; word-break: break-all; }
+    .result-item .cat { display: inline-block; background: #4f46e5; color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-top: 6px; }
+
+    .sidebar-card {
+      background: white; border-radius: 16px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+    }
+    .sidebar-card h3 { font-size: 16px; margin-bottom: 12px; color: #4f46e5; }
+    .sidebar-card a { display: block; font-size: 14px; color: #1e293b; text-decoration: none; padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
+    .sidebar-card a:hover { color: #4f46e5; }
+
+    .no-result { text-align: center; padding: 60px 20px; color: #64748b; }
+    .no-result a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+    .no-result a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .sidebar { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========== 新增：全局地址栏 ========== -->
+  <div class="global-url-bar">
+    <div class="url-input-wrap">
+      <input type="text" id="globalUrlInput" placeholder="输入网址打开，或输入关键词搜索…" />
+      <button class="url-go-btn" id="globalUrlGoBtn">打开 / 搜索</button>
+    </div>
+    <button class="url-help-btn" id="openStatusHelpBtn">📘 状态码说明</button>
+  </div>
+  <!-- 状态码说明弹窗（默认隐藏） -->
+  <div id="statusHelpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h2>HTTP 状态码速查表</h2>
+      <div class="status-grid" id="statusGridContent"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button style="background:#4f46e5; color:white; border:none; border-radius:20px; padding:8px 24px; cursor:pointer;" id="closeStatusModal">关闭</button>
+      </div>
+    </div>
+  </div>
+  <!-- 临时提示容器 -->
+  <div id="globalToastContainer"></div>
+  <!-- ========== 新增结束 ========== -->
+
+  <div class="container">
+    <div class="main">
+      <div class="top-bar">
+        <span class="logo-small" onclick="window.location.href='index.html'">了了了搜</span>
+        <input type="text" id="searchInput" placeholder="继续搜索..." />
+        <button id="searchBtn">搜索</button>
+      </div>
+      <div id="resultsContainer"></div>
+    </div>
+    <div class="sidebar" id="relatedSidebar">
+      <div class="sidebar-card">
+        <h3>🔗 相关网站推荐</h3>
+        <div id="relatedLinks">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="leleart.js"></script>
+  <script>
+    // ========== 原有搜索结果页脚本（完全保留） ==========
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    document.getElementById('searchInput').value = query;
+    document.title = `${query} - 了了了搜`;
+
+    const resultsContainer = document.getElementById('resultsContainer');
+    const relatedDiv = document.getElementById('relatedLinks');
+
+    const catMap = {
+      '000':'热门推荐','001':'视频娱乐','002':'购物消费','003':'新闻资讯','004':'社交社区',
+      '005':'学习知识','006':'实用工具','007':'AI对话平台','008':'AI绘画与设计',
+      '009':'AI写作与语言','00A':'AI搜索与编程','00B':'AI工具导航','00C':'AI平台与开发',
+      '00D':'AI视频音频','00E':'休闲游戏','00F':'小说阅读','010':'设计协作','011':'项目管理与协作',
+      '012':'任务与日历','013':'云存储与文档','014':'开发与部署','015':'笔记与写作',
+      '016':'自动化工具','017':'图片与素材','018':'邮箱与密码','019':'RSS与阅读/博客',
+      '01A':'表单与调查','01B':'视频会议与通讯','01C':'设计灵感与资源','01D':'分析与监控',
+      '01E':'支付与商业','01F':'社交媒体管理','020':'其他工具','021':'社区与问答',
+      '022':'编程语言与框架','023':'数据库/摄影','024':'网络与基础设施','025':'音乐与音频',
+      '026':'社交媒体与内容','027':'设计资源与字体','028':'开发工具与测试','029':'在线教育',
+      '02A':'数据科学与AI平台','02B':'科学计算与数学','02C':'电影与评价','02D':'学术与引用',
+      '02E':'百科与参考','02F':'编程挑战与题库','030':'设计工具与创作','031':'网络工具与安全',
+      '032':'包管理与注册','033':'前端资源与兼容性','034':'科技媒体','035':'技术社区',
+      '036':'数字阅读','037':'云服务厂商','038':'手机品牌','039':'数码产品','03A':'软件下载',
+      '03B':'信息安全','03C':'购物比价','03D':'旅游出行','03E':'招聘求职','03F':'GitHub加速',
+      '040':'API与开发工具','041':'在线工具集','042':'设计营销','043':'生活服务',
+      '044':'AI平台与模型','045':'政府机构','046':'新闻财经','047':'健康医疗','048':'教育与考试',
+      '049':'设计素材','050':'游戏','051':'在线工具合集','052':'编解码与测试','053':'绘图与白板',
+      '054':'在线笔记','055':'其他实用','056':'在线音乐','057':'视频直播','058':'小说阅读',
+      '059':'漫画','060':'综合新闻','061':'教育培训','062':'体育与社区','063':'游戏平台',
+      '064':'数码与社区','065':'应用下载','066':'云存储与邮箱','067':'协同办公','068':'设计原型',
+      '069':'低代码与云开发','070':'词典翻译','071':'便民生活','072':'金融支付','073':'招聘求职',
+      '074':'房产家居','075':'汽车出行','076':'医疗挂号','077':'星座娱乐','078':'在线课程',
+      '079':'在线工具与沙箱','080':'设计素材与字体','081':'票务演出','082':'美食菜谱',
+      '083':'品牌与排名','084':'学术资源','085':'交通出行','086':'图片与社区','087':'时间与计算',
+      '088':'放松与创意','089':'政府部委','090':'科技媒体'
+    };
+    function getCatName(id) {
+      const big = id.split('_')[0];
+      return catMap[big] || '未分类';
+    }
+
+    function searchLexicon(kw) {
+      if (!kw || typeof lexiconData === 'undefined' || !lexiconData.length) return [];
+      const lowerKw = kw.toLowerCase();
+      const scored = lexiconData.map(item => {
+        let score = 0;
+        const title = (item.title || '').toLowerCase();
+        if (title === lowerKw) score += 1000;
+        else if (title.includes(lowerKw)) score += 100;
+        if (Array.isArray(item.alias)) {
+          item.alias.forEach(a => {
+            const aLower = a.toLowerCase();
+            if (aLower === lowerKw) score += 500;
+            else if (aLower.includes(lowerKw)) score += 50;
+          });
+        }
+        const abstract = (item.abstract || '').toLowerCase();
+        if (abstract.includes(lowerKw)) score += 30;
+        return { item, score };
+      }).filter(x => x.score > 0);
+      scored.sort((a, b) => b.score - a.score);
+      return scored.map(x => x.item).slice(0, 3);
+    }
+
+    function searchSites(kw) {
+      if (!kw) return [];
+      const lowerKw = kw.toLowerCase();
+      for (let big in catMap) {
+        if (catMap[big].toLowerCase() === lowerKw) {
+          return siteData.filter(item => item.id.split('_')[0] === big).slice(0, 50);
+        }
+      }
+      let scored = siteData.map(item => {
+        let score = 0;
+        const name = item.name.toLowerCase();
+        const url = item.url.toLowerCase();
+        if (name === lowerKw) score += 1000;
+        else if (name.startsWith(lowerKw)) score += 500;
+        if (name.includes(lowerKw)) score += 100;
+        if (url.includes(lowerKw)) score += 20;
+        const words = lowerKw.split(/\s+/);
+        words.forEach(w => {
+          if (w && name.includes(w)) score += 40;
+          if (w && url.includes(w)) score += 10;
+        });
+        return { item, score };
+      }).filter(x => x.score > 0);
+      scored.sort((a, b) => b.score - a.score);
+      return scored.map(x => x.item).slice(0, 50);
+    }
+
+    function renderPage() {
+      if (!query) {
+        resultsContainer.innerHTML = '<div class="no-result">请输入搜索内容</div>';
+        return;
+      }
+      let html = '';
+      const lexResults = searchLexicon(query);
+      lexResults.forEach(entry => {
+        let detailLink = '';
+        if (entry.id) {
+          detailLink = `<a href="leleart.html?id=${entry.id}" target="_blank" rel="noopener">查看详情 →</a>`;
+        } else if (entry.url) {
+          detailLink = `<a href="${entry.url}" target="_blank" rel="noopener">查看详情 →</a>`;
+        }
+        html += `
+          <div class="lexicon-card">
+            <h2>${entry.title}</h2>
+            ${entry.image ? `<img src="${entry.image}" alt="${entry.title}" />` : ''}
+            <p>${entry.abstract || ''}</p>
+            ${detailLink}
+          </div>
+        `;
+      });
+
+      const siteResults = searchSites(query);
+      if (siteResults.length > 0) {
+        siteResults.forEach(r => {
+          html += `
+            <div class="result-item">
+              <a href="${r.url}" target="_blank" rel="noopener">${r.name}</a>
+              <div class="url">${r.url}</div>
+              <span class="cat">${getCatName(r.id)}</span>
+            </div>
+          `;
+        });
+      } else {
+        html += `
+          <div class="no-result">
+            <p>🔍 没有找到与“<strong>${query}</strong>”相关的网站。</p>
+            <p style="margin: 20px 0;">试试在百度搜索：</p>
+            <a href="https://www.baidu.com/s?wd=${encodeURIComponent(query)}" target="_blank">🔗 百度一下</a>
+          </div>
+        `;
+      }
+      resultsContainer.innerHTML = html;
+    }
+
+    function showRelated(q) {
+      if (!q || typeof siteData === 'undefined') {
+        relatedDiv.innerHTML = '暂无推荐';
+        return;
+      }
+      const lowerQ = q.toLowerCase();
+      const matched = siteData.filter(item =>
+        item.name.toLowerCase().includes(lowerQ) || item.url.toLowerCase().includes(lowerQ)
+      ).slice(0, 10);
+      if (matched.length === 0) {
+        relatedDiv.innerHTML = '暂无相关推荐';
+        return;
+      }
+      relatedDiv.innerHTML = matched.map(item =>
+        `<a href="${item.url}" target="_blank" rel="noopener">${item.name}</a>`
+      ).join('');
+    }
+
+    renderPage();
+    showRelated(query);
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const newQ = document.getElementById('searchInput').value.trim();
+      if (newQ) window.location.href = `search.html?q=${encodeURIComponent(newQ)}`;
+    });
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const newQ = document.getElementById('searchInput').value.trim();
+        if (newQ) window.location.href = `search.html?q=${encodeURIComponent(newQ)}`;
+      }
+    });
+  </script>
+
+  <!-- ========== 新增：地址栏功能脚本 ========== -->
+  <script>
+    (function() {
+      const urlInput = document.getElementById('globalUrlInput');
+      const goBtn = document.getElementById('globalUrlGoBtn');
+      const toastContainer = document.getElementById('globalToastContainer');
+
+      // 预定义状态码列表（用作帮助及提示参考）
+      const HTTP_STATUS = {
+        '100': 'Continue - 服务器已收到请求头，客户端应继续发送请求体。',
+        '101': 'Switching Protocols - 服务器同意切换协议。',
+        '102': 'Processing - 服务器已接受请求，正在处理，尚无响应。',
+        '103': 'Early Hints - 用于在最终响应前返回部分提示。',
+        '200': 'OK - 请求成功。',
+        '201': 'Created - 请求成功，并已创建新资源。',
+        '202': 'Accepted - 请求已被接受，但尚未处理完成。',
+        '203': 'Non-Authoritative Information - 返回的元信息来自第三方缓存。',
+        '204': 'No Content - 请求成功，但无返回内容。',
+        '205': 'Reset Content - 请求成功，需重置文档视图。',
+        '206': 'Partial Content - 成功处理了部分GET请求（范围请求）。',
+        '207': 'Multi-Status - 返回多个独立的状态码（WebDAV）。',
+        '208': 'Already Reported - 资源已在前序响应中报告（WebDAV）。',
+        '226': 'IM Used - 服务器已完成对资源的差异编码。',
+        '300': 'Multiple Choices - 请求的资源有多个表示，需进一步选择。',
+        '301': 'Moved Permanently - 资源已永久移动到新URL。',
+        '302': 'Found - 资源临时被移至另一URL。',
+        '303': 'See Other - 应使用GET方法访问另一URL。',
+        '304': 'Not Modified - 资源未修改，可使用本地缓存。',
+        '305': 'Use Proxy - 必须通过指定代理访问（已废弃）。',
+        '307': 'Temporary Redirect - 临时重定向，应保持原有请求方法。',
+        '308': 'Permanent Redirect - 永久重定向，应保持原有请求方法。',
+        '400': 'Bad Request - 请求存在语法错误，服务器无法理解。',
+        '401': 'Unauthorized - 请求需要用户身份验证。',
+        '402': 'Payment Required - 预留状态码，用于支付场景。',
+        '403': 'Forbidden - 服务器理解请求但拒绝执行。',
+        '404': 'Not Found - 服务器未找到请求的资源。',
+        '405': 'Method Not Allowed - 请求方法对该资源不被允许。',
+        '406': 'Not Acceptable - 无法生成符合Accept头的内容。',
+        '407': 'Proxy Authentication Required - 需要通过代理的身份验证。',
+        '408': 'Request Timeout - 服务器等待请求超时。',
+        '409': 'Conflict - 请求与资源的当前状态冲突。',
+        '410': 'Gone - 资源已永久删除，且无转发地址。',
+        '411': 'Length Required - 缺少Content-Length请求头。',
+        '412': 'Precondition Failed - 请求中的前提条件未满足。',
+        '413': 'Payload Too Large - 请求体大小超出服务器处理能力。',
+        '414': 'URI Too Long - 请求的URI过长。',
+        '415': 'Unsupported Media Type - 请求包含不支持的媒体格式。',
+        '416': 'Range Not Satisfiable - 请求的范围无法被满足。',
+        '417': 'Expectation Failed - 无法满足Expect请求头的要求。',
+        '418': "I'm a teapot - 恶搞状态码，表示服务器拒绝煮咖啡。",
+        '421': 'Misdirected Request - 请求被发送至无法响应的服务器。',
+        '422': 'Unprocessable Entity - 请求语义正确但参数有误，无法处理。',
+        '423': 'Locked - 目标资源被锁定。',
+        '424': 'Failed Dependency - 因前置请求失败而无法完成当前请求。',
+        '425': 'Too Early - 服务器拒绝可能被重放的不安全请求。',
+        '426': 'Upgrade Required - 客户端需要升级到指定协议。',
+        '428': 'Precondition Required - 请求必须包含前置条件。',
+        '429': 'Too Many Requests - 客户端在一定时间内发送了过多请求。',
+        '431': 'Request Header Fields Too Large - 请求头字段总大小超出限制。',
+        '451': 'Unavailable For Legal Reasons - 因法律原因不可用。',
+        '500': 'Internal Server Error - 服务器内部错误，无法完成请求。',
+        '501': 'Not Implemented - 服务器不支持该请求功能。',
+        '502': 'Bad Gateway - 作为网关或代理，从上游服务器收到无效响应。',
+        '503': 'Service Unavailable - 服务暂时不可用，通常因过载或维护。',
+        '504': 'Gateway Timeout - 网关或代理等待上游服务器响应超时。',
+        '505': 'HTTP Version Not Supported - 不支持请求使用的HTTP版本。',
+        '506': 'Variant Also Negotiates - 服务器存在内部协商配置错误。',
+        '507': 'Insufficient Storage - 存储空间不足，无法完成请求。',
+        '508': 'Loop Detected - 处理请求时检测到死循环。',
+        '510': 'Not Extended - 请求需要进一步的扩展才能完成。',
+        '511': 'Network Authentication Required - 客户端需要进行网络身份验证。'
+      };
+
+      // 判断是否为网址
+      function isURL(str) {
+        const trimmed = str.trim();
+        if (/^https?:\/\//i.test(trimmed)) return true;
+        // 包含常见顶级域，且无空格
+        if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed) && !/\s/.test(trimmed)) return true;
+        return false;
+      }
+
+      // 补全协议
+      function normalizeURL(str) {
+        str = str.trim();
+        if (!/^https?:\/\//i.test(str)) {
+          return 'https://' + str;
+        }
+        return str;
+      }
+
+      // 显示提示卡片
+      function showToast(htmlContent, type = 'info', duration = 0) {
+        const div = document.createElement('div');
+        div.className = `url-toast ${type}`;
+        div.innerHTML = htmlContent;
+        toastContainer.appendChild(div);
+        if (duration > 0) {
+          setTimeout(() => div.remove(), duration);
+        }
+        // 点击关闭按钮
+        div.querySelector('.close-toast')?.addEventListener('click', () => div.remove());
+        return div;
+      }
+
+      // 网络探测
+      async function probeURL(url) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        try {
+          const resp = await fetch(url, {
+            method: 'HEAD',
+            mode: 'no-cors',
+            signal: controller.signal
+          });
+          clearTimeout(timeout);
+          // no-cors 模式下 resp 是 opaque，无法读取状态码，但只要没抛出异常就认为网络可通
+          return { reachable: true };
+        } catch (err) {
+          clearTimeout(timeout);
+          return { reachable: false, error: err };
+        }
+      }
+
+      // 主处理函数
+      async function handleGo() {
+        const raw = urlInput.value.trim();
+        if (!raw) return;
+
+        if (isURL(raw)) {
+          const targetURL = normalizeURL(raw);
+          // 显示探测中
+          const toast = showToast(`
+            <button class="close-toast">&times;</button>
+            <h3>🔍 正在检测连接...</h3>
+            <p>${targetURL}</p>
+          `, 'info');
+          const result = await probeURL(targetURL);
+          toast.remove();
+
+          if (result.reachable) {
+            // 网络可达，直接打开
+            window.open(targetURL, '_blank');
+            showToast(`
+              <button class="close-toast">&times;</button>
+              <h3>✅ 网址可达</h3>
+              <p>已在新建标签页中打开 ${targetURL}</p>
+              <div class="actions">
+                <a href="${targetURL}" target="_blank">重新打开</a>
+                <button class="secondary close-toast">关闭</button>
+              </div>
+            `, 'success', 4000);
+          } else {
+            // 网络不可达
+            const errMsg = result.error?.message || '未知错误';
+            const searchURL = `https://www.baidu.com/s?wd=${encodeURIComponent(raw)}`;
+            showToast(`
+              <button class="close-toast">&times;</button>
+              <h3>🌐 无法连接到服务器</h3>
+              <p>错误信息：${errMsg}</p>
+              <p>可能原因：DNS 解析失败、服务器无响应、网络断开、URL 拼写错误等。</p>
+              <p style="font-size:12px; margin-top:6px;">常见 HTTP 状态码：404（未找到）、500（服务器错误）、403（禁止访问）等，<br>点击右上角“状态码说明”查看完整列表。</p>
+              <div class="actions">
+                <a href="${targetURL}" target="_blank">仍要打开</a>
+                <a href="${searchURL}" target="_blank">🔗 百度搜索</a>
+                <button class="secondary close-toast">关闭</button>
+              </div>
+            `, 'error');
+          }
+        } else {
+          // 不是网址 → 当成搜索词跳转搜索结果页（保留原有逻辑）
+          window.location.href = `search.html?q=${encodeURIComponent(raw)}`;
+        }
+      }
+
+      // 绑定事件
+      goBtn.addEventListener('click', handleGo);
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleGo();
+      });
+
+      // ---------- 状态码说明弹窗 ----------
+      const modal = document.getElementById('statusHelpModal');
+      const grid = document.getElementById('statusGridContent');
+      const openBtn = document.getElementById('openStatusHelpBtn');
+      const closeBtn = document.getElementById('closeStatusModal');
+
+      function buildStatusGrid() {
+        let html = '';
+        for (const [code, desc] of Object.entries(HTTP_STATUS)) {
+          html += `<div class="status-item"><span class="status-code">${code}</span> ${desc}</div>`;
+        }
+        grid.innerHTML = html;
+      }
+      buildStatusGrid();
+
+      openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
+      closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+
+      // 预置当前搜索词到地址栏（方便直接修改打开）
+      if (query) {
+        urlInput.value = query;
+      }
+    })();
+  </script>
+</body>
+</html>
