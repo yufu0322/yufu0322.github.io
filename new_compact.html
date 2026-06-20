@@ -1,1 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>了了了岭工作室·Since 2026.1.26</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(145deg, #f0f4f9 0%, #e8ecf5 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
+        .top-bar {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .studio-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e293b 0%, #4f46e5 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+        .studio-title:hover {
+            opacity: 0.8;
+        }
+        .top-search-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .top-search-btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.4);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .intro {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 28px 32px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            line-height: 1.8;
+            font-size: 15px;
+            color: #475569;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .intro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+        }
+        .intro strong {
+            color: #1e293b;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .product-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 26px;
+            padding: 28px 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+        .product-card.disabled {
+            opacity: 0.55;
+            filter: grayscale(0.4);
+            pointer-events: none;
+        }
+        .product-card.disabled:hover {
+            transform: none;
+        }
+        .product-card.disabled::before {
+            display: none;
+        }
+
+        .product-icon {
+            font-size: 48px;
+            margin-bottom: 18px;
+            transition: transform 0.3s;
+        }
+        .product-card:hover .product-icon {
+            transform: scale(1.1);
+        }
+        .product-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+        .product-desc {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            flex: 1;
+        }
+        .product-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+            display: inline-block;
+            align-self: flex-start;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        .product-btn:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
+        }
+        .product-btn.disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .product-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 28px 20px;
+            color: #94a3b8;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .studio-title {
+                font-size: 22px;
+            }
+            .intro {
+                padding: 20px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <span class="studio-title" onclick="window.location.href='打开这个.html'">了了了岭工作室·Since 2026.1.26</span>
+        <a class="top-search-btn" href="data/lelelesearch/index.html" target="_blank" rel="noopener noreferrer">🔍 打开 了了了搜</a>
+    </div>
+
+    <div class="container">
+        <div class="intro">
+            <strong>了了了岭工作室·Since 2026.1.26</strong> 成立于2025年，由了了了岭工作室创办，致力于在有限的硬件条件下开发高效、实用的网页工具。旗下产品包括聚合搜索、即时通讯、百科词条、游戏导航、在线工具助手等，所有项目均基于纯原生Web技术构建。我们相信“极简即最强”，用最少的资源，做最实用的工具。
+        </div>
+
+        <div class="cards-grid">
+            <!-- 了了了搜 -->
+            <div class="product-card">
+                <div class="product-icon">🔍</div>
+                <div class="product-name">了了了搜</div>
+                <div class="product-desc">聚合搜索引擎与网址导航，集成数千个常用网站，支持智能加权搜索和自建百科词条。</div>
+                <a class="product-btn" href="data/lelelesearch/index.html" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+
+            <!-- 了了了词条 -->
+            <div class="product-card">
+                <div class="product-icon">📚</div>
+                <div class="product-name">了了了词条</div>
+                <div class="product-desc">开放百科词条系统，支持创建、编辑和搜索自定义知识卡片，与了了了搜深度整合。</div>
+                <a class="product-btn" href="data/lelelesearch/leleart.html?id=00000001b" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+            
+            <!-- 了了了聊 -->
+            <div class="product-card">
+                <div class="product-icon">💬</div>
+                <div class="product-name">了了了聊</div>
+                <div class="product-desc">该功能已下架，请在新版网站中使用该功能</div>
+                <a class="product-btn" href="data/client.leleleling.html" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+
+            <!-- 了了了游 (已上线) -->
+            <div class="product-card">
+                <div class="product-icon">🎮</div>
+                <div class="product-name">了了了游</div>
+                <div class="product-desc">在线小游戏聚合导航，收录数千款 HTML5 游戏，分类浏览，一键即玩。</div>
+                <a class="product-btn" href="data/lelelegame/index.html" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+
+            <!-- 了了了读 -->
+            <div class="product-card">
+                <div class="product-icon">📖</div>
+                <div class="product-name">了了了读</div>
+                <div class="product-desc">在线电子书阅读器，支持多种格式文本阅读，提供清爽舒适的沉浸式阅读体验。</div>
+                <a class="product-btn" href="data/leleleread/lelereading.html" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+
+            <!-- 了了了助 -->
+            <div class="product-card">
+                <div class="product-icon">🛠️</div>
+                <div class="product-name">了了了助</div>
+                <div class="product-desc">在线实用工具助手，目前已支持图片转化器，后续将添加更多效率工具。</div>
+                <a class="product-btn" href="data/lelelehelp/index.html" target="_blank" rel="noopener noreferrer">进入</a>
+            </div>
+            
+        </div>
+    </div>
+
+    <footer>© 2026 了了了岭工作室 · 用最少的资源，做最实用的工具·Since 2026.1.26</footer>
+</body>
+</html>
