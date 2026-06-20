@@ -1,1 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>了了了搜 · 了了了岭工作室</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(145deg, #f0f4f9 0%, #e8ecf5 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #1e293b;
+    }
 
+    /* ========== 新增：全局地址栏（首页专用样式） ========== */
+    .global-url-bar {
+      width: 100%; max-width: 600px; margin: 0 auto 20px auto;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+    }
+    .url-input-wrap {
+      flex: 1; display: flex; align-items: center;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+      border-radius: 30px; padding: 4px 4px 4px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid rgba(148,163,184,0.3);
+      min-width: 260px;
+    }
+    .url-input-wrap input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      background: transparent; color: #1e293b;
+    }
+    .url-input-wrap input::placeholder { color: #94a3b8; }
+    .url-go-btn {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 30px; padding: 8px 20px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .url-go-btn:hover { background: #4338ca; }
+    .url-help-btn {
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+      border: 1px solid rgba(148,163,184,0.3); border-radius: 30px;
+      padding: 8px 16px; font-size: 13px; cursor: pointer;
+      color: #4f46e5; white-space: nowrap; transition: 0.2s;
+    }
+    .url-help-btn:hover { background: white; }
+
+    /* 状态提示卡片（通用） */
+    .url-toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: white; border-radius: 16px; padding: 20px 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2); z-index: 999;
+      max-width: 600px; width: 90%; text-align: center;
+      border-left: 6px solid #4f46e5;
+    }
+    .url-toast.error { border-left-color: #ef4444; }
+    .url-toast.success { border-left-color: #10b981; }
+    .url-toast h3 { margin-bottom: 10px; }
+    .url-toast p { color: #475569; margin-bottom: 16px; font-size: 14px; }
+    .url-toast .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .url-toast .actions button, .url-toast .actions a {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 30px; padding: 10px 24px; font-weight: 600;
+      cursor: pointer; text-decoration: none; font-size: 14px;
+    }
+    .url-toast .actions .secondary {
+      background: #e2e8f0; color: #1e293b;
+    }
+    .url-toast .close-toast {
+      position: absolute; top: 10px; right: 18px;
+      background: none; border: none; font-size: 22px;
+      cursor: pointer; color: #64748b;
+    }
+
+    /* 状态码说明弹窗 */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white; border-radius: 20px; padding: 24px;
+      max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    .modal-content h2 { margin-bottom: 16px; color: #1e293b; }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+    .status-item { padding: 4px 6px; border-radius: 6px; background: #f8fafc; }
+    .status-code { font-weight: 700; color: #4f46e5; }
+    @media (max-width: 500px) { .status-grid { grid-template-columns: 1fr; } }
+    /* ========== 新增样式结束 ========== */
+
+    .logo {
+      font-size: 64px; font-weight: 800;
+      background: linear-gradient(135deg, #1e293b 0%, #4f46e5 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 10px; cursor: pointer; user-select: none;
+    }
+    .studio { font-size: 14px; color: #64748b; margin-bottom: 40px; }
+    .search-box {
+      display: flex; align-items: center; background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(12px); border: 2px solid rgba(148,163,184,0.3);
+      border-radius: 60px; padding: 6px 6px 6px 28px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.06); width: 600px; max-width: 90vw;
+      transition: 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79,70,229,0.1);
+    }
+    .search-box input {
+      flex: 1; border: none; outline: none; font-size: 18px;
+      background: transparent; color: #1e293b;
+    }
+    .search-box input::placeholder { color: #94a3b8; }
+    .search-box button {
+      background: #4f46e5; color: white; border: none;
+      border-radius: 50px; padding: 12px 32px; font-weight: 600; font-size: 16px;
+      cursor: pointer; letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(79,70,229,0.3); transition: 0.2s;
+    }
+    .search-box button:hover { background: #4338ca; }
+    .toolbar {
+      margin-top: 20px; display: flex; gap: 16px; align-items: center;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .tool-btn {
+      background: rgba(255,255,255,0.3); backdrop-filter: blur(8px);
+      border: 1px solid rgba(148,163,184,0.2); border-radius: 30px;
+      padding: 8px 20px; cursor: pointer; font-size: 14px;
+      color: #1e293b; transition: 0.2s; text-decoration: none; display: inline-block;
+    }
+    .tool-btn:hover { background: #4f46e5; color: white; }
+    .hot-box, .quote-box {
+      margin-top: 30px; text-align: center; color: #64748b;
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+      padding: 12px 24px; border-radius: 24px; max-width: 700px;
+    }
+    .hot-box h4 { font-size: 14px; margin-bottom: 8px; }
+    .hot-item {
+      display: inline-block; background: rgba(148,163,184,0.1); border-radius: 20px;
+      padding: 4px 14px; margin: 4px; font-size: 13px; cursor: pointer;
+      transition: 0.2s; color: #1e293b;
+    }
+    .hot-item:hover { background: #4f46e5; color: white; }
+    footer { margin-top: 40px; color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <!-- ========== 新增：全局地址栏 ========== -->
+  <div class="global-url-bar">
+    <div class="url-input-wrap">
+      <input type="text" id="globalUrlInput" placeholder="输入网址打开，或输入关键词搜索…" />
+      <button class="url-go-btn" id="globalUrlGoBtn">打开 / 搜索</button>
+    </div>
+    <button class="url-help-btn" id="openStatusHelpBtn">📘 状态码说明</button>
+  </div>
+  <!-- 状态码说明弹窗（默认隐藏） -->
+  <div id="statusHelpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h2>HTTP 状态码速查表</h2>
+      <div class="status-grid" id="statusGridContent"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button style="background:#4f46e5; color:white; border:none; border-radius:20px; padding:8px 24px; cursor:pointer;" id="closeStatusModal">关闭</button>
+      </div>
+    </div>
+  </div>
+  <!-- 临时提示容器 -->
+  <div id="globalToastContainer"></div>
+  <!-- ========== 新增结束 ========== -->
+
+  <div class="logo" id="logo">了了了搜</div>
+  <div class="studio">了了了岭工作室出品</div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="输入网站名称或关键词…" autofocus />
+    <button id="searchBtn">了了了搜</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="tool-btn" id="randomBtn">🎲 随机逛</button>
+    <button class="tool-btn" id="navBtn">📚 网址导航</button>
+    <a class="tool-btn" href="../../打开这个.html">🏠 工作室</a>
+  </div>
+
+  <div class="hot-box" id="hotBox">
+    <h4>🔥 实时热搜</h4>
+    <div id="hotWords"></div>
+  </div>
+
+  <div class="quote-box" id="quoteBox" title="点击换一句">加载中...</div>
+
+  <footer>了了了搜 · 聚合引擎 · 了了了岭工作室出品</footer>
+
+  <script src="data.js"></script>
+  <script>
+    // ========== 原有首页脚本（完全保留） ==========
+    const logo = document.getElementById('logo');
+    logo.addEventListener('click', () => window.location.href = 'index.html');
+
+    document.getElementById('randomBtn').addEventListener('click', () => {
+      const randomItem = siteData[Math.floor(Math.random() * siteData.length)];
+      window.open(randomItem.url, '_blank');
+    });
+
+    document.getElementById('navBtn').addEventListener('click', () => {
+      window.location.href = 'search.html?q=热门推荐';
+    });
+
+    const quotes = [
+      "每一个优秀的人，都有一段沉默的时光。",
+      "学习永无止境。",
+      "今天也要加油呀！",
+      "你的坚持，终将美好。",
+      "星光不问赶路人，时光不负有心人。",
+      "越努力，越幸运。",
+      "既然选择了远方，便只顾风雨兼程。",
+      "慢慢来，会更快。",
+      "你只管努力，剩下的交给时间。",
+      "所有的惊艳，都曾被平庸历练。",
+      "低谷时更要抬头看路。",
+      "行动是治愈焦虑的良药。",
+      "种一棵树最好的时间是十年前，其次是现在。",
+      "没有白走的路，每一步都算数。",
+      "熬过无人问津的日子，才有诗和远方。",
+      "别让今天的懒，变成明天的难。",
+      "再长的路，一步步也能走完。",
+      "自律即自由。",
+      "你比想象中更有力量。",
+      "失败也是经历，经历就是财富。",
+      "心若向阳，无惧悲伤。",
+      "保持热爱，奔赴山海。",
+      "今天流的汗，会变成明天的光。",
+      "与其仰望别人，不如点亮自己。",
+      "世上没有白费的努力，也没有碰巧的成功。",
+      "温柔要有，但不是妥协。",
+      "日子常新，未来不远。",
+      "但行好事，莫问前程。",
+      "真正的成长，是优于过去的自己。",
+      "把耐心留住，惊喜会慢慢酝酿而出。",
+      "生活不会亏待每一个奔跑的人。",
+      "你未必光芒万丈，但始终温暖有光。",
+      "去做你害怕的事，害怕自会消失。",
+      "乾坤未定，你我皆是黑马。",
+      "抬头自卑，低头自得，唯有平视才能看见真实的自己。",
+      "每一天都是余生中最年轻的一天。",
+      "先完成，再完美。",
+      "不驰于空想，不骛于虚声。",
+      "想，全是问题；做，都是答案。",
+      "只要路是对的，就不怕远。",
+      "沉住气，花会开。",
+      "山高路远，看世界也找自己。",
+      "最好的状态是未来可期。",
+      "深耕自己，才是最好的破圈。",
+      "慢一点没关系，只要在前进。",
+      "当你足够努力，全世界都会为你让路。",
+      "认真生活，就能找到被藏起来的糖果。",
+      "不要因为没有掌声就放弃梦想。",
+      "发光不是太阳的专利，你也可以。",
+      "每一次低头，都是对自己的肯定。",
+      "人生没有白读的书，每一页都算数。",
+      "所谓无底深渊，下去也是前程万里。",
+      "心里有火，眼里有光。",
+      "哪怕微小，也要持续发光。",
+      "坚持比天赋更可怕。",
+      "你的时间花在哪里，人生就在哪里。",
+      "接受普通，努力出众。",
+      "凡是过往，皆为序章。",
+      "万事尽可期待。",
+      "好好生活，慢慢相遇。",
+      "前途似海，来日方长。",
+      "别怕，总有人笨拙地爱着你。",
+      "每个整装待发的重新开始，都为时不晚。",
+      "人生最精彩的不是实现梦想的瞬间，而是坚持梦想的过程。",
+      "追光的人，终会光芒万丈。",
+      "全力以赴，然后满载而归。",
+      "今天尽力做的，虽然辛苦，但未来发生的，都是礼物。",
+      "努力的目的是为了有更多选择权。",
+      "你三四月做的事，八九月自有答案。",
+      "别辜负自己，走到今天真的不容易。",
+      "向着月亮出发，即使不能到达，也能站在群星之中。",
+      "只有承担起旅途风雨，才能最终守得住彩虹满天。",
+      "内心强大，胜过外表浮华。",
+      "勇敢不是不害怕，而是害怕的时候还去坚持。",
+      "向下扎根，向上生长。",
+      "好运藏在努力里。",
+      "你要悄悄拔尖，然后惊艳所有人。",
+      "别让任何人打乱你的节奏。",
+      "世界会向那些有目标和远见的人让路。",
+      "努力不是为了感动谁，而是让自己拥有随时跳出厌恶圈子的能力。",
+      "学会在雨中跳舞，而不是等待风暴过去。",
+      "所有的挫折都是修行。",
+      "持续精进，是对自己最大的尊重。",
+      "你不一定有逆风翻盘的剧本，但可以拥有绝地反击的决心。",
+      "看不清未来时，就比别人坚持久一点。",
+      "最怕一生碌碌无为，还安慰自己平凡可贵。",
+      "积极向上的活着，总有很多瞬间告诉你，生活值得。",
+      "别让舒适圈温柔地杀死你的可能性。",
+      "成功的路上并不拥挤，因为坚持的人不多。",
+      "时间不会辜负每一个用力奔跑的人。",
+      "再小的努力，乘以365都很明显。",
+      "与其在别处仰望，不如在这里并肩。",
+      "不要停下，因为别人还在奔跑。",
+      "你受的苦，会照亮你的路。",
+      "哪怕是最没有希望的事情，只要勇敢坚持，最后也会拥有曙光。",
+      "足够优秀，再大方拥有。",
+      "这一秒不放弃，下一秒就有希望。",
+      "把简单的事做好就是不简单。",
+      "平静的大海培养不出优秀的水手。",
+      "做自己的太阳，无需凭借谁的光。",
+      "一个人使劲踮起脚尖靠近太阳的时候，全世界都挡不住他的阳光。"
+    ];
+    const quoteEl = document.getElementById('quoteBox');
+    quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+    quoteEl.addEventListener('click', () => {
+      quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+    });
+
+    const hotWords = ["ChatGPT","Figma","React","Vue","LeetCode","DeepSeek","抖音","知乎","淘宝","原神"];
+    const hotContainer = document.getElementById('hotWords');
+    hotWords.forEach(w => {
+      const span = document.createElement('span');
+      span.className = 'hot-item';
+      span.textContent = w;
+      span.onclick = () => {
+        document.getElementById('searchInput').value = w;
+        doSearch();
+      };
+      hotContainer.appendChild(span);
+    });
+
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (q) window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+    }
+    document.getElementById('searchBtn').addEventListener('click', doSearch);
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSearch();
+    });
+  </script>
+
+  <!-- ========== 新增：地址栏功能脚本（与 search.html 相同逻辑） ========== -->
+  <script>
+    (function() {
+      const urlInput = document.getElementById('globalUrlInput');
+      const goBtn = document.getElementById('globalUrlGoBtn');
+      const toastContainer = document.getElementById('globalToastContainer');
+
+      const HTTP_STATUS = {
+        '100': 'Continue - 服务器已收到请求头，客户端应继续发送请求体。',
+        '101': 'Switching Protocols - 服务器同意切换协议。',
+        '102': 'Processing - 服务器已接受请求，正在处理，尚无响应。',
+        '103': 'Early Hints - 用于在最终响应前返回部分提示。',
+        '200': 'OK - 请求成功。',
+        '201': 'Created - 请求成功，并已创建新资源。',
+        '202': 'Accepted - 请求已被接受，但尚未处理完成。',
+        '203': 'Non-Authoritative Information - 返回的元信息来自第三方缓存。',
+        '204': 'No Content - 请求成功，但无返回内容。',
+        '205': 'Reset Content - 请求成功，需重置文档视图。',
+        '206': 'Partial Content - 成功处理了部分GET请求（范围请求）。',
+        '207': 'Multi-Status - 返回多个独立的状态码（WebDAV）。',
+        '208': 'Already Reported - 资源已在前序响应中报告（WebDAV）。',
+        '226': 'IM Used - 服务器已完成对资源的差异编码。',
+        '300': 'Multiple Choices - 请求的资源有多个表示，需进一步选择。',
+        '301': 'Moved Permanently - 资源已永久移动到新URL。',
+        '302': 'Found - 资源临时被移至另一URL。',
+        '303': 'See Other - 应使用GET方法访问另一URL。',
+        '304': 'Not Modified - 资源未修改，可使用本地缓存。',
+        '305': 'Use Proxy - 必须通过指定代理访问（已废弃）。',
+        '307': 'Temporary Redirect - 临时重定向，应保持原有请求方法。',
+        '308': 'Permanent Redirect - 永久重定向，应保持原有请求方法。',
+        '400': 'Bad Request - 请求存在语法错误，服务器无法理解。',
+        '401': 'Unauthorized - 请求需要用户身份验证。',
+        '402': 'Payment Required - 预留状态码，用于支付场景。',
+        '403': 'Forbidden - 服务器理解请求但拒绝执行。',
+        '404': 'Not Found - 服务器未找到请求的资源。',
+        '405': 'Method Not Allowed - 请求方法对该资源不被允许。',
+        '406': 'Not Acceptable - 无法生成符合Accept头的内容。',
+        '407': 'Proxy Authentication Required - 需要通过代理的身份验证。',
+        '408': 'Request Timeout - 服务器等待请求超时。',
+        '409': 'Conflict - 请求与资源的当前状态冲突。',
+        '410': 'Gone - 资源已永久删除，且无转发地址。',
+        '411': 'Length Required - 缺少Content-Length请求头。',
+        '412': 'Precondition Failed - 请求中的前提条件未满足。',
+        '413': 'Payload Too Large - 请求体大小超出服务器处理能力。',
+        '414': 'URI Too Long - 请求的URI过长。',
+        '415': 'Unsupported Media Type - 请求包含不支持的媒体格式。',
+        '416': 'Range Not Satisfiable - 请求的范围无法被满足。',
+        '417': 'Expectation Failed - 无法满足Expect请求头的要求。',
+        '418': "I'm a teapot - 恶搞状态码，表示服务器拒绝煮咖啡。",
+        '421': 'Misdirected Request - 请求被发送至无法响应的服务器。',
+        '422': 'Unprocessable Entity - 请求语义正确但参数有误，无法处理。',
+        '423': 'Locked - 目标资源被锁定。',
+        '424': 'Failed Dependency - 因前置请求失败而无法完成当前请求。',
+        '425': 'Too Early - 服务器拒绝可能被重放的不安全请求。',
+        '426': 'Upgrade Required - 客户端需要升级到指定协议。',
+        '428': 'Precondition Required - 请求必须包含前置条件。',
+        '429': 'Too Many Requests - 客户端在一定时间内发送了过多请求。',
+        '431': 'Request Header Fields Too Large - 请求头字段总大小超出限制。',
+        '451': 'Unavailable For Legal Reasons - 因法律原因不可用。',
+        '500': 'Internal Server Error - 服务器内部错误，无法完成请求。',
+        '501': 'Not Implemented - 服务器不支持该请求功能。',
+        '502': 'Bad Gateway - 作为网关或代理，从上游服务器收到无效响应。',
+        '503': 'Service Unavailable - 服务暂时不可用，通常因过载或维护。',
+        '504': 'Gateway Timeout - 网关或代理等待上游服务器响应超时。',
+        '505': 'HTTP Version Not Supported - 不支持请求使用的HTTP版本。',
+        '506': 'Variant Also Negotiates - 服务器存在内部协商配置错误。',
+        '507': 'Insufficient Storage - 存储空间不足，无法完成请求。',
+        '508': 'Loop Detected - 处理请求时检测到死循环。',
+        '510': 'Not Extended - 请求需要进一步的扩展才能完成。',
+        '511': 'Network Authentication Required - 客户端需要进行网络身份验证。'
+      };
+
+      function isURL(str) {
+        const trimmed = str.trim();
+        if (/^https?:\/\//i.test(trimmed)) return true;
+        if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed) && !/\s/.test(trimmed)) return true;
+        return false;
+      }
+
+      function normalizeURL(str) {
+        str = str.trim();
+        if (!/^https?:\/\//i.test(str)) return 'https://' + str;
+        return str;
+      }
+
+      function showToast(htmlContent, type = 'info', duration = 0) {
+        const div = document.createElement('div');
+        div.className = `url-toast ${type}`;
+        div.innerHTML = htmlContent;
+        toastContainer.appendChild(div);
+        if (duration > 0) setTimeout(() => div.remove(), duration);
+        div.querySelector('.close-toast')?.addEventListener('click', () => div.remove());
+        return div;
+      }
+
+      async function probeURL(url) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        try {
+          await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+          clearTimeout(timeout);
+          return { reachable: true };
+        } catch (err) {
+          clearTimeout(timeout);
+          return { reachable: false, error: err };
+        }
+      }
+
+      async function handleGo() {
+        const raw = urlInput.value.trim();
+        if (!raw) return;
+
+        if (isURL(raw)) {
+          const targetURL = normalizeURL(raw);
+          const toast = showToast(`
+            <button class="close-toast">&times;</button>
+            <h3>🔍 正在检测连接...</h3>
+            <p>${targetURL}</p>
+          `, 'info');
+          const result = await probeURL(targetURL);
+          toast.remove();
+
+          if (result.reachable) {
+            window.open(targetURL, '_blank');
+            showToast(`
+              <button class="close-toast">&times;</button>
+              <h3>✅ 网址可达</h3>
+              <p>已在新建标签页中打开 ${targetURL}</p>
+              <div class="actions">
+                <a href="${targetURL}" target="_blank">重新打开</a>
+                <button class="secondary close-toast">关闭</button>
+              </div>
+            `, 'success', 4000);
+          } else {
+            const errMsg = result.error?.message || '未知错误';
+            const searchURL = `https://www.baidu.com/s?wd=${encodeURIComponent(raw)}`;
+            showToast(`
+              <button class="close-toast">&times;</button>
+              <h3>🌐 无法连接到服务器</h3>
+              <p>错误信息：${errMsg}</p>
+              <p>可能原因：DNS 解析失败、服务器无响应、网络断开、URL 拼写错误等。</p>
+              <p style="font-size:12px; margin-top:6px;">常见 HTTP 状态码：404（未找到）、500（服务器错误）、403（禁止访问）等，<br>点击右上角“状态码说明”查看完整列表。</p>
+              <div class="actions">
+                <a href="${targetURL}" target="_blank">仍要打开</a>
+                <a href="${searchURL}" target="_blank">🔗 百度搜索</a>
+                <button class="secondary close-toast">关闭</button>
+              </div>
+            `, 'error');
+          }
+        } else {
+          window.location.href = `search.html?q=${encodeURIComponent(raw)}`;
+        }
+      }
+
+      goBtn.addEventListener('click', handleGo);
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleGo();
+      });
+
+      // 状态码弹窗
+      const modal = document.getElementById('statusHelpModal');
+      const grid = document.getElementById('statusGridContent');
+      const openBtn = document.getElementById('openStatusHelpBtn');
+      const closeBtn = document.getElementById('closeStatusModal');
+
+      function buildStatusGrid() {
+        let html = '';
+        for (const [code, desc] of Object.entries(HTTP_STATUS)) {
+          html += `<div class="status-item"><span class="status-code">${code}</span> ${desc}</div>`;
+        }
+        grid.innerHTML = html;
+      }
+      buildStatusGrid();
+
+      openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
+      closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    })();
+  </script>
+</body>
+</html>
