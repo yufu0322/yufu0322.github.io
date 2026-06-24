@@ -1,13 +1,13 @@
 // lelegame_data.js
 const gameData = [
     // ==================== 本地游戏 (7个) ====================
-    { id: 1, name: "爱种地的农民", icon: "🌾", category: "休闲", type: "local", url: "games/爱种地的农民/index.html" },
-    { id: 2, name: "玉米工厂大亨", icon: "🌽", category: "休闲", type: "local", url: "games/玉米工厂大亨/index.html" },
-    { id: 3, name: "2048", icon: "🔢", category: "益智", type: "local", url: "games/2048/index.html" },
-    { id: 4, name: "扫雷", icon: "💣", category: "益智", type: "local", url: "games/扫雷/index.html" },
-    { id: 5, name: "太空射击", icon: "🚀", category: "射击", type: "local", url: "games/太空射击/index.html" },
-    { id: 6, name: "宇宙进化", icon: "🪐", category: "冒险", type: "local", url: "games/宇宙进化/index.html" },
-    { id: 7, name: "3D射击", icon: "🔫", category: "射击", type: "local", url: "games/3D射击/index.html" },
+    { id: 1, name: "爱种地的农民", icon: "🌾", category: "休闲", type: "local", url: "games/Farmer.html" },
+    { id: 2, name: "玉米工厂大亨", icon: "🌽", category: "休闲", type: "local", url: "games/Corn-Factory.html" },
+    { id: 3, name: "2048", icon: "🔢", category: "益智", type: "local", url: "games/2048.html" },
+    { id: 4, name: "扫雷", icon: "💣", category: "益智", type: "local", url: "games/Minesweeper.html" },
+    { id: 5, name: "太空射击", icon: "🚀", category: "射击", type: "local", url: "games/Space-Fight.html" },
+    { id: 6, name: "宇宙进化", icon: "🪐", category: "冒险", type: "local", url: "games/Space-Evolution.html" },
+    { id: 7, name: "3D射击", icon: "🔫", category: "射击", type: "local", url: "games/3D-Shooter.html" },
 
     // ==================== 外部著名 HTML5 游戏（原有13个） ====================
     { id: 8, name: "Paper.io 2", icon: "📄", category: "动作", type: "external", url: "https://paper-io.com/" },
@@ -1027,8 +1027,8 @@ const gameData = [
     { id: 1018, name: "NASCAR Lite", icon: "🏁", category: "竞速", type: "external", url: "https://www.crazygames.com/game/nascar-lite" },
     { id: 1019, name: "Monster Jam Lite", icon: "🛻", category: "竞速", type: "external", url: "https://www.crazygames.com/game/monster-jam-lite" },
     { id: 1020, name: "Demolition Derby Lite", icon: "💥", category: "动作", type: "external", url: "https://www.crazygames.com/game/demolition-derby-lite" },
-    { id: 1021, name: "等级吃吃吃", icon: "🎮", category: "冒险", type: "local", url: "games/等级吃吃吃/index.html" },
-    { id: 1022, name: "点击香蕉", icon: "🍌", category: "休闲", type: "local", url: "games/点击香蕉/index.html" },
+    { id: 1021, name: "等级吃吃吃", icon: "🎮", category: "冒险", type: "local", url: "games/Leveling-Up.html" },
+    { id: 1022, name: "点击香蕉", icon: "🍌", category: "休闲", type: "local", url: "games/Click-Banana.html" },
     { id: 1023, name: "Google 恐龙快跑", icon: "🦖", category: "休闲", type: "external", url: "https://chromedino.com/" },
     { id: 1024, name: "贪吃蛇经典", icon: "🐍", category: "休闲", type: "external", url: "https://playsnake.org/" },
     { id: 1025, name: "Cookie Clicker", icon: "🍪", category: "休闲", type: "external", url: "https://orteil.dashnet.org/cookieclicker/" },
